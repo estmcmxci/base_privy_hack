@@ -210,10 +210,21 @@ integrated flow. (API specifics + verified version pins in §13.A.)
   `eip155:84532` (Base Sepolia). Code in §13.B. (Caveat: confirm subpath imports at
   install — docs show minor drift.)
 
+**De-risked — template skimmed (`privy-io/examples/.../pinata-template`):**
+- ~~Template wallet model / customization?~~ Agent gets its own ETH+SOL wallets via
+  `privy-agent-wallet login` (one canonical path; human funds + revokes at
+  agents.privy.io). Customization = edit OpenClaw markdown (`TOOLS.md`/`AGENTS.md`),
+  no code. x402 = one CLI command `fetch-x402 <url> --max-value <usdc-base-units>`
+  (auto-handles 402; `--max-value` = budget guard). Details §13.B.
+
 **Still open — blocking:**
-- `TODO` Inspect Privy Wallet Agent template repo — wallet model + how to add the
-  "query base.privy on a budget → watchlist" behavior.
-- `TODO` x402 flat-tax amount (testnet USDC) + where the fee goes (treasury / ops).
+- `TODO` **Network compatibility (NEW, important):** template x402 docs say "USDC on
+  **Base**" — confirm `fetch-x402` supports **Base Sepolia** (our all-testnet stack).
+  If mainnet-only, either move x402 surfaces to Base mainnet (real USDC, tiny amounts)
+  or find the CLI's testnet flag. Scout(template)↔gate(`@x402/next`) must share network.
+- `TODO` Scout autonomy: template is command-driven/reactive; "query periodically on a
+  budget" needs our addition (`AGENTS.md` instructions + a scheduler/cron).
+- `TODO` x402 flat-tax amount (USDC) + where the fee goes (treasury / ops).
 - `TODO` Signal-API pricing: per-query USDC amount + which endpoints gated vs free.
   (`withX402` `price` is set per-route, e.g. `"$0.001"` — just needs the numbers.)
 
@@ -332,8 +343,21 @@ Dashboard: *Authentication → Advanced → "Enable for CLI and agent access"* +
 Verification URI. Packaged as `@privy-io/agent-wallet-cli login --non-interactive`.
 
 **Consumer agent runtime:** Privy Wallet Agent (Pinata template) — engine **OpenClaw**,
-one-click deploy, ships x402 + MPP + Privy wallet + agent-auth CLI. Repo:
-`github.com/privy-io/examples` (pinata-template). Oversight: agents.privy.io.
+one-click deploy. Repo `github.com/privy-io/examples/.../pinata-template` (skimmed
+2026-06-06). Structure:
+- `manifest.json` (Pinata `manifest.v1`): build = `npm i -g @privy-io/agent-wallet-cli`,
+  start = `privy-agent-wallet login --non-interactive`; route `/dashboard:3000`.
+- `workspace/{TOOLS,AGENTS,SOUL,IDENTITY}.md` = OpenClaw config. **Customize the scout
+  by editing these markdown files — no code.**
+- Wallet ops + x402 all via `@privy-io/agent-wallet-cli`:
+  ```bash
+  privy-agent-wallet login --non-interactive   # device-grant auth; agent gets ETH+SOL wallets
+  privy-agent-wallet fund                       # human funds the wallet
+  privy-agent-wallet fetch-x402 <url> --max-value <usdc-base-units>  # pays on 402; --max-value = budget
+  privy-agent-wallet rpc --json '{"method":..,"params":..}'          # sign/send
+  ```
+- x402 docs say **"USDC on Base"** — `TODO` confirm Base **Sepolia** support (see §11).
+- Oversight/revoke: agents.privy.io.
 
 ### 13.C — Other references
 
