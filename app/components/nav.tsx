@@ -14,6 +14,12 @@ export function Nav() {
 
         <div className="flex items-center gap-2 sm:gap-6">
           <Link
+            href="/leaderboard"
+            className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-2 sm:px-0 text-sm text-fg-muted hover:text-fg transition-colors"
+          >
+            Leaderboard
+          </Link>
+          <Link
             href="/resolved"
             className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-2 sm:px-0 text-sm text-fg-muted hover:text-fg transition-colors"
           >
