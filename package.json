@@ -27,10 +27,31 @@
     "postgres": "^3.4.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "x402-next": "0.7.3",
     "zod": "^4.3.6"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "-",
+      ",",
+      "a",
+      "b",
+      "d",
+      "e",
+      "esbuild",
+      "h",
+      "i",
+      "l",
+      "n",
+      "o",
+      "p",
+      "r",
+      "s",
+      "sharp",
+      "u",
+      "unrs-resolver",
+      "v"
+    ]
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
