@@ -130,16 +130,23 @@ integrated flow. (API specifics + verified version pins in §13.A.)
 - Frontend: Next.js 16 / React 19 / TS (scaffolded; §13.A).
 - Backend / API: Next.js route handlers. SIWE: `/api/auth/nonce` + `/api/auth/verify`
   (verify server-side). Prediction/resolution/scoring reused from scenius.
-- **Datastore — DECIDED: Postgres + Drizzle** (reuse scenius's schema). `TODO` host
-  (Neon / Supabase / Vercel PG) — see §11.
-- **Resolution job — DECIDED: weekly cron** (scenius `runWeeklyResolution`). `TODO`
-  host (likely Vercel Cron) + confirm weekly vs. daily cadence.
-- **Onchain record — DECIDED: EAS attestations on Base** (per resolved call + per
-  reputation snapshot; scenius `eas-service`). `TODO` mainnet vs. Sepolia for dev;
-  reuse scenius's EAS schema UID vs. register fresh; who pays gas (§11).
-- **Codebase strategy — DECIDED: reuse scenius directly.** Lean on its
-  `predictions` / `resolution` / `tastemakers` / `soundcloud` domains. Couples the
-  two projects — `TODO` confirm shared DB vs. copied modules.
+- **Datastore — DECIDED: Supabase Postgres + Drizzle** (inherited from scenius).
+  base.privy gets a **fresh Supabase project** (clean demo data, no risk to scenius);
+  run scenius's existing Drizzle migrations into it.
+- **Resolution job — DECIDED: Vercel cron, Friday weekly** (inherited from scenius
+  `vercel.json`): two-stage — snapshot `0 11 * * 5`, resolve `0 12 * * 5`. Cadence
+  could later move to daily, but Friday-weekly is the ported default, not a blocker.
+- **Onchain record — DECIDED: EAS on Base Sepolia** (inherited; contract
+  `0x4200…0021`). **Reuse scenius's registered schema UIDs** (`EAS_SCHEMA_UID_
+  PREDICTION` / `_REPUTATION`). Gas paid by scenius's server signer (`EAS_PRIVATE_KEY`
+  pattern). Same network as x402 (testnet) — see payment layer.
+- **Codebase strategy — DECIDED: copy scenius code into this repo** (not a shared
+  codebase, not a shared DB). Port the `predictions` / `resolution` / `tastemakers` /
+  `soundcloud` / EAS domains as-is; fresh DB + Privy auth are the only rewires.
+- **Auth swap — DECIDED: rip out Para, Privy only.** scenius authenticates with
+  **Para** (`NEXT_PUBLIC_PARA_API_KEY`); base.privy removes it and rewires the
+  `tastemaker → wallet` identity to Privy embedded wallets (the validated scaffold,
+  §13.A). **This is the real porting work** — infra rides in unchanged.
 - **Anti-sybil — DECIDED: stake-to-predict** (Base/Privy wallet), implemented as the
   x402 flat-tax below.
 - **Payment layer — DECIDED: x402** (pay-per-request USDC on Base). Two surfaces,
@@ -170,18 +177,21 @@ integrated flow. (API specifics + verified version pins in §13.A.)
 - ~~Include x402 bounty?~~ Yes, both surfaces (§10).
 - ~~Agents as tastemakers?~~ **No** — agents are demand-side only (read signal, never
   make calls). Supply/demand invariant, §10.
+- ~~DB host / shared vs copied?~~ **Copy scenius code into this repo; fresh Supabase
+  project** (run scenius migrations). §10.
+- ~~EAS chain / schema UID?~~ **Base Sepolia, reuse scenius's registered UIDs.** §10.
+- ~~Cron host/cadence?~~ **Vercel cron, Friday weekly** (inherited). §10.
+- ~~Network: EAS vs x402?~~ **All Base Sepolia (testnet)** — testnet USDC for x402. §10.
+- ~~Auth porting?~~ **Rip out Para, Privy only** — the real porting task. §10.
 
-**Still open — blocking:**
+**Still open — blocking (all x402-specific now):**
 - `TODO` Verify x402 facilitator/SDK + current spec against Base docs (recency check
   before any x402 code).
-- `TODO` x402 flat-tax amount + currency (USDC assumed) + where the fee goes
-  (treasury / ops). It is *not* returned (flat tax, not escrow).
-- `TODO` Signal-API pricing: per-query USDC amount + which endpoints are gated vs free.
+- `TODO` x402 flat-tax amount (testnet USDC) + where the fee goes (treasury / ops).
+  Not returned (flat tax, not escrow).
+- `TODO` Signal-API pricing: per-query USDC amount + which endpoints gated vs free.
 - `TODO` Demo consumer agent scope (the "fund scout" w/ USDC budget) — build for the
   agent-facing bounty column, or ship rails only? (Leaning: build the minimal agent.)
-- `TODO` DB host (Neon / Supabase / Vercel PG) + shared-DB-with-scenius vs. copied modules.
-- `TODO` EAS chain (mainnet vs Sepolia), schema UID (reuse vs fresh), gas payer.
-- `TODO` Resolution cron host + cadence (weekly vs daily).
 
 **Still open — deferrable:**
 - `TODO` Identity model: wallet address vs Privy user ID; ENS naming.
