@@ -217,13 +217,19 @@ integrated flow. (API specifics + verified version pins in §13.A.)
   no code. x402 = one CLI command `fetch-x402 <url> --max-value <usdc-base-units>`
   (auto-handles 402; `--max-value` = budget guard). Details §13.B.
 
+- ~~Network compatibility (Sepolia)?~~ **RESOLVED — verified in `agent-wallet-cli@0.3.1`
+  shipped code:** `fetch-x402` registers `eip155:*` (all EVM chains) and pays on whatever
+  network the **server's 402 declares**. x402 is server-driven on network, so our gate's
+  `eip155:84532` (Base Sepolia) is matched — **no mainnet lock-in; all-Sepolia holds.**
+  Needs: agent funded with testnet USDC (Circle faucet) + facilitator on Sepolia (✓).
+
 **Still open — blocking:**
-- `TODO` **Network compatibility (NEW, important):** template x402 docs say "USDC on
-  **Base**" — confirm `fetch-x402` supports **Base Sepolia** (our all-testnet stack).
-  If mainnet-only, either move x402 surfaces to Base mainnet (real USDC, tiny amounts)
-  or find the CLI's testnet flag. Scout(template)↔gate(`@x402/next`) must share network.
+- `TODO` **Public HTTPS for agent payment (NEW, from bytecode):** `fetch-x402` is
+  HTTPS-only + blocks private/local IPs → agent **cannot** pay `http://localhost`.
+  base.privy must be a public HTTPS URL (Vercel preview) for any agent→gate test.
 - `TODO` Scout autonomy: template is command-driven/reactive; "query periodically on a
-  budget" needs our addition (`AGENTS.md` instructions + a scheduler/cron).
+  budget" needs our addition (`AGENTS.md` instructions + a scheduler/cron). `--max-value`
+  (default 1 USDC) is the per-call budget guard.
 - `TODO` x402 flat-tax amount (USDC) + where the fee goes (treasury / ops).
 - `TODO` Signal-API pricing: per-query USDC amount + which endpoints gated vs free.
   (`withX402` `price` is set per-route, e.g. `"$0.001"` — just needs the numbers.)
@@ -356,7 +362,12 @@ one-click deploy. Repo `github.com/privy-io/examples/.../pinata-template` (skimm
   privy-agent-wallet fetch-x402 <url> --max-value <usdc-base-units>  # pays on 402; --max-value = budget
   privy-agent-wallet rpc --json '{"method":..,"params":..}'          # sign/send
   ```
-- x402 docs say **"USDC on Base"** — `TODO` confirm Base **Sepolia** support (see §11).
+- **Network: server-driven (verified in shipped code).** `fetch-x402` registers
+  `eip155:*` and pays on whatever network the 402 declares → Base Sepolia (84532) works,
+  no mainnet lock-in. The "USDC on Base" wording is shorthand. `agent-wallet-cli@0.3.1`.
+- **Caveat (from bytecode):** `fetch-x402` is **HTTPS-only + blocks private/local IPs** →
+  no `localhost`; base.privy must be public HTTPS for agent payment. `--max-value`
+  (default 1 USDC base units) is the per-call spend cap; refuses to sign if amount unreadable.
 - Oversight/revoke: agents.privy.io.
 
 ### 13.C — Other references
