@@ -60,9 +60,11 @@ and `/api/watchlist` are x402-gated APIs any agent can discover and pay to use
 (the "service that earns"). The human stake path is "x402 under the hood, a real
 person calling shots." We built both rails and a reason for money to cross them.
 
-- **Novelty** — a paid signal whose value comes from *not being machine-fakeable*.
-  Most x402 demos sell compute or data an agent could generate; here the agent
-  pays precisely because it's barred from the supply side.
+- **Novelty** — *x402 finally puts a price on being right early — agents can fake
+  a prediction, never a track record.* Most x402 demos sell compute or data an
+  agent could generate itself; Scenius sells the one input it can't synthesize —
+  earned, stake-backed, onchain-attested reputation. The signal is calibrated
+  conviction, and it compounds the longer the graph runs.
 - **PMF** — A&R scouts, music funds, and sync/playlist desks already want "which
   unknowns do credible people believe in?" That's the metered signal, and those
   buyers are increasingly agents.
