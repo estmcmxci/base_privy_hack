@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useX402Fetch } from "@privy-io/react-auth";
 import { TrackPreview } from "@/app/components/track-preview";
 import { formatAddress } from "@/app/shared/format-address";
 
@@ -15,6 +15,7 @@ export default function SubmitPage() {
   const router = useRouter();
   const { authenticated, login, getAccessToken } = usePrivy();
   const { wallets } = useWallets();
+  const { wrapFetchWithPayment } = useX402Fetch();
 
   const embeddedWallet = wallets.find((w) => w.walletClientType === "privy");
   const walletAddress = embeddedWallet?.address ?? null;
@@ -52,7 +53,10 @@ export default function SubmitPage() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch("/api/predictions", {
+      // Stake-to-predict: /api/predictions is x402-gated. wrapFetchWithPayment
+      // pays the flat USDC tax from the embedded wallet on the 402 challenge.
+      const payFetch = wrapFetchWithPayment({ walletAddress, fetch });
+      const res = await payFetch("/api/predictions", {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -225,6 +229,10 @@ export default function SubmitPage() {
         >
           {submitting ? "Submitting..." : "Submit Prediction"}
         </button>
+        <p className="text-center text-xs text-fg-faint">
+          Submitting stakes a small fee (testnet USDC via x402) — this is the
+          anti-spam tax that keeps the leaderboard credible.
+        </p>
       </form>
     </main>
   );

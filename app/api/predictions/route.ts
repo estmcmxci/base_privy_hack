@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withX402 } from "@x402/next";
 import { PrivyClient } from "@privy-io/server-auth";
+import { server, accepts } from "@/app/lib/x402-server";
 import { createPredictionSchema } from "@/app/domains/predictions/types/create-prediction";
 import { submitPrediction } from "@/app/domains/predictions/service/prediction-service";
 import { findOrCreateByWallet } from "@/app/domains/tastemakers/repo/tastemaker-repo";
@@ -18,7 +20,10 @@ async function verifyPrivyToken(token: string): Promise<boolean> {
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+// Stake-to-predict: making a call costs a flat x402 USDC tax (Base Sepolia). This
+// is the sybil tax + the human-facing half of the x402 bounty. The frontend pays
+// via Privy's useX402Fetch (see app/submit/page.tsx).
+const handler = async (request: NextRequest): Promise<NextResponse> => {
   const body = await request.json().catch(() => null);
   const parsed = createPredictionSchema.safeParse(body);
 
@@ -84,4 +89,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     artist: result.artist,
     snapshot: result.totals,
   });
-}
+};
+
+export const POST = withX402(
+  handler,
+  {
+    accepts: accepts("$0.001"),
+    description: "Stake to submit a tastemaker prediction",
+    mimeType: "application/json",
+  },
+  server
+);
