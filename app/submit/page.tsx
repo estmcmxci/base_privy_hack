@@ -54,8 +54,10 @@ export default function SubmitPage() {
 
       // Stake-to-predict: /api/predictions is x402-gated. wrapFetchWithPayment
       // pays the flat USDC tax from the embedded wallet on the 402 challenge.
+      // NOTE: must be an ABSOLUTE url — the x402 client does `new URL(input)`,
+      // which throws on a relative path.
       const payFetch = wrapFetchWithPayment({ walletAddress, fetch });
-      const res = await payFetch("/api/predictions", {
+      const res = await payFetch(`${window.location.origin}/api/predictions`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -83,9 +85,11 @@ export default function SubmitPage() {
 
       const data = await res.json();
       router.push(`/predictions/${data.predictionId}`);
-    } catch {
+    } catch (err) {
+      console.error("[submit] x402 stake failed:", err);
+      const msg = err instanceof Error ? err.message : String(err);
       setFormError(
-        "Couldn't complete the stake. This wallet needs Base Sepolia USDC to cover the x402 fee — fund it at faucet.circle.com and try again."
+        `Couldn't complete the stake (${msg}). If this mentions funds, top up Base Sepolia USDC at faucet.circle.com.`
       );
     } finally {
       setSubmitting(false);
