@@ -1,26 +1,48 @@
 {
-  "name": "base-privy-tastemaker",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Seam-validation spike: Privy auth + Base Account onchain identity. See PRD.md §10/§13.A.",
+  "name": "base-privy",
+  "version": "1.0.0",
+  "description": "Tastemaker reputation game on Privy + Base + x402 (ported from scenius)",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cli": "tsx --env-file=.env app/cli/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
+  "packageManager": "pnpm@10.17.1",
   "dependencies": {
-    "@base-org/account": "^2.5.6",
-    "@base-org/account-ui": "^1.0.1",
+    "@ethereum-attestation-service/eas-sdk": "^2.9.0",
     "@privy-io/react-auth": "^3.29.2",
-    "next": "^16.2.7",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "@privy-io/server-auth": "^1.32.5",
+    "@tanstack/react-query": "^5.97.0",
+    "@x402/core": "^2.14.0",
+    "@x402/evm": "^2.14.0",
+    "@x402/next": "^2.14.0",
+    "drizzle-orm": "^0.45.1",
+    "ethers": "^6.16.0",
+    "next": "^16.1.6",
+    "postgres": "^3.4.8",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp", "unrs-resolver"]
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "typescript": "^5"
+    "@eslint/eslintrc": "^3.3.5",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "drizzle-kit": "^0.31.9",
+    "eslint": "^10.0.3",
+    "eslint-config-next": "^16.1.6",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

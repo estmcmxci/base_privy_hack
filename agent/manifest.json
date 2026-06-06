@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agents.pinata.cloud/schemas/manifest.v1.json",
+  "agent": {
+    "name": "Tastemaker Scout",
+    "description": "A fund / A&R research agent that pays per query (x402, USDC on Base Sepolia) to read base.privy's tastemaker signal and emit a watchlist of credible emerging artists. Read-only consumer: it never makes a prediction or a call.",
+    "emoji": "🎧",
+    "vibe": "rigorous, skeptical, buys signal not hype"
+  },
+  "template": {
+    "slug": "tastemaker-scout",
+    "category": "research",
+    "authorName": "base.privy",
+    "tags": ["research", "wallet", "x402", "base", "a&r", "music", "watchlist"]
+  },
+  "scripts": {
+    "build": "npm install -g @privy-io/agent-wallet-cli",
+    "start": "privy-agent-wallet login --non-interactive"
+  },
+  "routes": [
+    {
+      "path": "/dashboard",
+      "port": 3000,
+      "protected": false
+    }
+  ]
+}
