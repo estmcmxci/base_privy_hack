@@ -200,20 +200,22 @@ integrated flow. (API specifics + verified version pins in §13.A.)
 - ~~Network: EAS vs x402?~~ **All Base Sepolia (testnet)** — testnet USDC for x402. §10.
 - ~~Auth porting?~~ **Rip out Para, Privy only** — the real porting task. §10.
 
-**De-risked this session (Privy docs + Pinata template):**
+**De-risked this session (Privy docs + Pinata template + x402 docs):**
 - ~~Verify x402 *pay* side?~~ Confirmed: `@privy-io/node/x402` + `@x402/fetch`, Base
   Sepolia + USDC, facilitator pays gas (§10/§13.A).
 - ~~Consumer-agent build?~~ Privy Wallet Agent Pinata template — x402 + agent-auth +
   wallet out of the box (§10). Wallet tier-ladder mooted; synthesis dropped.
+- ~~x402 GATE side?~~ **Confirmed: `@x402/next` `withX402` v2.14.0** (scoped line,
+  matches Privy's pay side). Facilitator `https://x402.org/facilitator`, network
+  `eip155:84532` (Base Sepolia). Code in §13.B. (Caveat: confirm subpath imports at
+  install — docs show minor drift.)
 
 **Still open — blocking:**
-- `TODO` **x402 GATE side (the real remaining unknown):** Next.js middleware to return
-  402 + validate `X-PAYMENT` on `GET /consensus` + `POST /predictions`; pick + verify
-  `x402-next`-style pkg and a facilitator (Coinbase / Pay AI / Corbits).
 - `TODO` Inspect Privy Wallet Agent template repo — wallet model + how to add the
   "query base.privy on a budget → watchlist" behavior.
 - `TODO` x402 flat-tax amount (testnet USDC) + where the fee goes (treasury / ops).
 - `TODO` Signal-API pricing: per-query USDC amount + which endpoints gated vs free.
+  (`withX402` `price` is set per-route, e.g. `"$0.001"` — just needs the numbers.)
 
 **Still open — deferrable:**
 - `TODO` Identity model: wallet address vs Privy user ID; ENS naming.
@@ -302,8 +304,26 @@ await fetchWithPayment('https://base.privy.app/consensus'); // 402 auto-handled
 // Base/Base Sepolia, USDC only, gas paid by facilitator (Coinbase / Pay AI / Corbits)
 ```
 
-**x402 — gate side (ours, NOT in Privy docs):** return `402` + validate `X-PAYMENT`
-on our endpoints. `TODO` verify `x402-next`-style middleware + facilitator.
+**x402 — gate side (ours; verified via `/coinbase/x402` docs + npm):** use the **scoped
+`@x402/*` v2.14.0** line (NOT the older unscoped `x402-next` v1.2.0). `@x402/next`
+`withX402` per-route, or `paymentProxy` + matcher for many routes.
+```ts
+// app/api/consensus/route.ts
+import { withX402 } from '@x402/next';
+import { x402ResourceServer, HTTPFacilitatorClient } from '@x402/core/server';
+import { ExactEvmScheme } from '@x402/evm/exact/server';
+const server = new x402ResourceServer(
+  new HTTPFacilitatorClient({ url: 'https://x402.org/facilitator' }) // Coinbase facilitator
+);
+server.register('eip155:*', new ExactEvmScheme());
+export const GET = withX402(handler, {
+  accepts: [{ scheme: 'exact', price: '$0.001', network: 'eip155:84532' /* Base Sepolia */, payTo: PAYTO }],
+  description: 'Tastemaker consensus signal', mimeType: 'application/json',
+}, server);
+// eip155:84532 = Base Sepolia (mainnet 8453); USDC; facilitator pays gas;
+// withX402 settles only after a successful response.
+// Caveat: confirm subpath imports (@x402/core/server, @x402/evm/exact/server) at install.
+```
 
 **Agent Authorization (OAuth 2.0 Device Grant):** agent `POST /api/oauth/v2/
 device_authorization` → human approves at our hosted verify page (`device_verify`) →
