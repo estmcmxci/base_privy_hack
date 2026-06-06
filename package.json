@@ -1,0 +1,26 @@
+{
+  "name": "base-privy-tastemaker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Seam-validation spike: Privy auth + Base Account onchain identity. See PRD.md §10/§13.A.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@base-org/account": "^2.5.6",
+    "@base-org/account-ui": "^1.0.1",
+    "@privy-io/react-auth": "^3.29.2",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
