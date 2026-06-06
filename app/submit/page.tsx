@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy, useWallets, useX402Fetch } from "@privy-io/react-auth";
 import { TrackPreview } from "@/app/components/track-preview";
-import { formatAddress } from "@/app/shared/format-address";
 
 const HORIZONS = ["1w", "2w", "4w", "8w"] as const;
 type Horizon = (typeof HORIZONS)[number];
@@ -85,7 +84,9 @@ export default function SubmitPage() {
       const data = await res.json();
       router.push(`/predictions/${data.predictionId}`);
     } catch {
-      setFormError("Network error. Check your connection and try again.");
+      setFormError(
+        "Couldn't complete the stake. This wallet needs Base Sepolia USDC to cover the x402 fee — fund it at faucet.circle.com and try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -126,10 +127,20 @@ export default function SubmitPage() {
 
       {walletAddress && (
         <div className="mb-8 rounded-md border border-border bg-bg-raised px-4 py-3 text-sm text-fg-muted">
-          Predicting as:{" "}
-          <span className="font-mono font-medium text-fg">
-            {formatAddress(walletAddress)}
-          </span>
+          <div>Predicting as:</div>
+          <button
+            type="button"
+            onClick={() => navigator.clipboard?.writeText(walletAddress)}
+            title="Click to copy"
+            className="mt-1 block w-full select-all break-all text-left font-mono text-xs font-medium text-fg hover:text-accent sm:text-sm"
+          >
+            {walletAddress}
+          </button>
+          <p className="mt-1 text-xs text-fg-faint">
+            Stake-to-predict is x402-gated — this wallet needs Base Sepolia USDC
+            to cover the fee. (Click the address to copy; fund at
+            faucet.circle.com.)
+          </p>
         </div>
       )}
 
