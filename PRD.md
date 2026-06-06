@@ -155,8 +155,24 @@ integrated flow. (API specifics + verified version pins in §13.A.)
     (= the stake; human-facing x402, "person calling the shots").
   - `GET /consensus` etc. — **agent**-or-human pays per query to read the signal
     (agent-facing x402, "service that earns" / "agent that spends").
-  - `TODO` verify x402 facilitator/SDK against current Base docs before building
-    (do not assume from memory — x402 is new and moving).
+  - **Pay side (verified via Privy docs):** `@privy-io/node/x402` `createX402Client`
+    + `@x402/fetch` `wrapFetchWithPayment`; `useX402Fetch` in `@privy-io/react-auth`
+    ≥3.7.0 (we have 3.29.2). Networks: Base / Base Sepolia, **USDC only**, gas paid by
+    a **facilitator** (Coinbase / Pay AI / Corbits).
+  - **Gate side (OURS — the remaining unknown):** how we return `402` + validate the
+    `X-PAYMENT` header on `GET /consensus` and `POST /predictions`. `TODO` verify the
+    Next.js x402 server middleware (`x402-next`-style) + facilitator wiring. Privy
+    documents *paying*, not *gating*.
+- **Consumer agent runtime — DECIDED: Privy Wallet Agent (Pinata template).** The
+  "fund scout" is the official **Privy Wallet Agent** marketplace template
+  (`agents.pinata.cloud/.../tgny401x`, engine **OpenClaw**, one-click deploy; repo
+  `github.com/privy-io/examples/.../pinata-template`). Ships **x402 + MPP payments,
+  Privy wallet, and the Agent-Authorization CLI** (`@privy-io/agent-wallet-cli login`
+  → browser approve → fund) out of the box, with a human-oversight dashboard at
+  agents.privy.io. This **moots the wallet tier-ladder** (template is the canonical
+  path) and **replaces the synthesis deploy route** (synthesis set aside; possible
+  later for ERC-8004 identity). `TODO` inspect template repo to confirm wallet model +
+  how to add "query base.privy on a budget → emit watchlist".
 - **Supply/demand invariant (load-bearing):** **agents may pay to *read* the signal,
   never to *make* calls.** The supply side (predictions) is human-only — that is what
   keeps the asset "credible *human* judgment." The human/agent boundary IS the
@@ -184,14 +200,20 @@ integrated flow. (API specifics + verified version pins in §13.A.)
 - ~~Network: EAS vs x402?~~ **All Base Sepolia (testnet)** — testnet USDC for x402. §10.
 - ~~Auth porting?~~ **Rip out Para, Privy only** — the real porting task. §10.
 
-**Still open — blocking (all x402-specific now):**
-- `TODO` Verify x402 facilitator/SDK + current spec against Base docs (recency check
-  before any x402 code).
+**De-risked this session (Privy docs + Pinata template):**
+- ~~Verify x402 *pay* side?~~ Confirmed: `@privy-io/node/x402` + `@x402/fetch`, Base
+  Sepolia + USDC, facilitator pays gas (§10/§13.A).
+- ~~Consumer-agent build?~~ Privy Wallet Agent Pinata template — x402 + agent-auth +
+  wallet out of the box (§10). Wallet tier-ladder mooted; synthesis dropped.
+
+**Still open — blocking:**
+- `TODO` **x402 GATE side (the real remaining unknown):** Next.js middleware to return
+  402 + validate `X-PAYMENT` on `GET /consensus` + `POST /predictions`; pick + verify
+  `x402-next`-style pkg and a facilitator (Coinbase / Pay AI / Corbits).
+- `TODO` Inspect Privy Wallet Agent template repo — wallet model + how to add the
+  "query base.privy on a budget → watchlist" behavior.
 - `TODO` x402 flat-tax amount (testnet USDC) + where the fee goes (treasury / ops).
-  Not returned (flat tax, not escrow).
 - `TODO` Signal-API pricing: per-query USDC amount + which endpoints gated vs free.
-- `TODO` Demo consumer agent scope (the "fund scout" w/ USDC budget) — build for the
-  agent-facing bounty column, or ship rails only? (Leaning: build the minimal agent.)
 
 **Still open — deferrable:**
 - `TODO` Identity model: wallet address vs Privy user ID; ENS naming.
@@ -205,10 +227,10 @@ integrated flow. (API specifics + verified version pins in §13.A.)
 | Phase | Deliverable | Status |
 |---|---|---|
 | M0 | PRD finalized | `IN PROGRESS` |
-| M1 | v0 demo loop (reuse scenius: predict → resolve → leaderboard) | `TODO` |
-| M2 | x402 rails — flat-tax on `POST /predictions` + metered `GET /consensus` | `TODO` |
-| M3 | Demo consumer agent (USDC-budget "fund scout" reads signal via x402) | `TODO` |
-| M4 | EAS attestations wired on Base + signal-API pricing | `TODO` |
+| M1 | Port scenius + swap Para→Privy (predict → resolve → leaderboard) | `TODO` |
+| M2 | x402 **gate** side — 402 on `POST /predictions` (flat-tax) + `GET /consensus` (metered) | `TODO` |
+| M3 | Deploy Privy Wallet Agent (Pinata template) as the "fund scout" → pays x402 to read signal → watchlist | `TODO` |
+| M4 | EAS attestations on Base Sepolia + signal-API pricing | `TODO` |
 
 ## 13. Appendix
 
@@ -265,7 +287,36 @@ import { SignInWithBaseButton } from '@base-org/account-ui/react';
 //       → wallet_connect (SIWE) → POST /api/auth/verify
 ```
 
-### 13.B — Other references
+### 13.B — Agent + x402 stack (verified 2026-06-06)
+
+Sources: `docs.privy.io/recipes/agent-integrations/{overview,agent-authorization,x402}`
+and the Pinata marketplace template (title-only — internals JS-rendered, `TODO` inspect repo).
+
+**x402 — pay side (agent/client):**
+```ts
+import { createX402Client } from '@privy-io/node/x402';
+import { wrapFetchWithPayment } from '@x402/fetch';
+const x402client = createX402Client(privy, { walletId, address });
+const fetchWithPayment = wrapFetchWithPayment(fetch, x402client);
+await fetchWithPayment('https://base.privy.app/consensus'); // 402 auto-handled
+// Base/Base Sepolia, USDC only, gas paid by facilitator (Coinbase / Pay AI / Corbits)
+```
+
+**x402 — gate side (ours, NOT in Privy docs):** return `402` + validate `X-PAYMENT`
+on our endpoints. `TODO` verify `x402-next`-style middleware + facilitator.
+
+**Agent Authorization (OAuth 2.0 Device Grant):** agent `POST /api/oauth/v2/
+device_authorization` → human approves at our hosted verify page (`device_verify`) →
+agent polls `/token` → exchanges for ephemeral HPKE signing key → signs wallet RPC.
+Dashboard: *Authentication → Advanced → "Enable for CLI and agent access"* + set
+Verification URI. Packaged as `@privy-io/agent-wallet-cli login --non-interactive`.
+
+**Consumer agent runtime:** Privy Wallet Agent (Pinata template) — engine **OpenClaw**,
+one-click deploy, ships x402 + MPP + Privy wallet + agent-auth CLI. Repo:
+`github.com/privy-io/examples` (pinata-template). Oversight: agents.privy.io.
+
+### 13.C — Other references
 
 - Original idea: [`idea.md`](./idea.md)
+- scenius primitive (reuse source): `/Users/oakgroup/scenius`
 - `TODO` prior art, competitive scan.
