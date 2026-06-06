@@ -28,8 +28,9 @@ resources from it. The CLI is installed at build time
 base.privy exposes the credibility signal over HTTP. The endpoints are
 **x402-gated** — every read costs USDC on Base Sepolia.
 
-`BASE_PRIVY_URL` is the **public HTTPS deploy** of base.privy. All queries are
-relative to it.
+**`BASE_PRIVY_URL` = `https://www.scenius.blog`** — the live public HTTPS deploy
+of base.privy. Use this exact URL for every query. (If the runtime sets a
+`BASE_PRIVY_URL` env var, prefer it; otherwise use the literal above.)
 
 ### Endpoints
 | Endpoint | Returns |
