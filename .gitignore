@@ -10,3 +10,6 @@ next-env.d.ts
 
 # historical data dump (contains real data — never commit)
 scenius-data.sql
+.vercel
+.env.local.bak
+*.bak
